@@ -24,6 +24,12 @@ DATA		:=	data
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
 
+APP_TITLE 	:= RetroArch Forwarder
+APP_AUTHOR 	:= natinusala
+APP_VERSION := 1.0
+APP_TITLEID := 01690a9b00fd7000
+NACPFLAGS 	:= --titleid=$(APP_TITLEID)
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
@@ -120,7 +126,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf $(TARGET).nacp
 
 #---------------------------------------------------------------------------------
 else
@@ -131,7 +137,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).nsp
+all	:	$(OUTPUT).nsp $(TARGET).nacp
 
 ifeq ($(strip $(APP_JSON)),)
 $(OUTPUT).nsp	:	$(OUTPUT).nso

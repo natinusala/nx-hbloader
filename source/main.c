@@ -4,6 +4,8 @@
 
 #define MODULE_HBL 347
 
+u32 __nx_applet_type = AppletType_SystemApplication;
+
 const char* g_easterEgg = "Do you mean to tell me that you're thinking seriously of building that way, when and if you are an architect?";
 
 static char g_argv[2048];
@@ -215,6 +217,29 @@ void getOwnProcessHandle(void)
     smExit();
 }
 
+bool readAndCopy(char *dst, char *path)
+{
+    FILE *fp = fopen(path, "rb");
+
+    if (!fp)
+        return false;
+
+    fseek(fp, 0L, SEEK_END);
+
+    long size = ftell(fp);
+
+    rewind(fp);
+
+    if (!fread(dst, size, 1, fp))
+    {
+        fclose(fp);
+        return false;
+    }
+
+    fclose(fp);
+    return true;
+}
+
 void loadNro(void)
 {
     NroHeader* header = NULL;
@@ -264,8 +289,22 @@ void loadNro(void)
 
     if (strlen(g_nextNroPath) == 0)
     {
-        strcpy(g_nextNroPath, "sdmc:/hbmenu.nro");
-        strcpy(g_nextArgv,    "sdmc:/hbmenu.nro");
+        Result rc = romfsInit();
+        if (R_SUCCEEDED(rc))
+        {
+            if (!readAndCopy(g_nextNroPath, "romfs:/nextNroPath") || !readAndCopy(g_nextArgv, "romfs:/nextArgv"))
+            {
+                strcpy(g_nextNroPath, "sdmc:/hbmenu.nro");
+                strcpy(g_nextArgv,    "sdmc:/hbmenu.nro");
+            }
+
+            romfsExit();
+        }
+        else
+        {
+            strcpy(g_nextNroPath, "sdmc:/hbmenu.nro");
+            strcpy(g_nextArgv,    "sdmc:/hbmenu.nro");
+        }
     }
 
     memcpy(g_argv, g_nextArgv, sizeof g_argv);
@@ -365,7 +404,7 @@ void loadNro(void)
     static ConfigEntry entries[] = {
         { EntryType_MainThreadHandle,     0, {0, 0} },
         { EntryType_ProcessHandle,        0, {0, 0} },
-        { EntryType_AppletType,           0, {AppletType_LibraryApplet, 0} },
+        { EntryType_AppletType,           0, {AppletType_SystemApplication, 0} },
         { EntryType_OverrideHeap,         M, {0, 0} },
         { EntryType_Argv,                 0, {0, 0} },
         { EntryType_NextLoadPath,         0, {0, 0} },
